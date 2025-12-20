@@ -1,8 +1,47 @@
 {% extends "base.html" %}
 
-{% block title %}{{ title }}{% endblock %}
-
 {% block content %}
-<h1>Каталог книг</h1>
-<p>Здесь будет список всех книг.</p>
+<h1 class="mb-4">{{ title }}</h1>
+
+{% if books %}
+<div class="alert alert-info">
+    В коллекции {{ book_count }} книг(и)
+</div>
+
+<div class="row">
+    {% for book in books %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">{{ book.title }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{ book.author }}</h6>
+
+                <div class="mb-2">
+                    <span class="badge bg-secondary">{{ book.genre }}</span>
+                    <span class="badge bg-info ms-1">{{ book.year }}</span>
+                    <span class="badge {{ 'bg-success' if book.status == 'read' else 'bg-warning' }} ms-1">
+                        {{ 'Прочитана' if book.status == 'read' else 'В процессе' }}
+                    </span>
+                </div>
+
+                <p class="card-text">{{ book.description }}</p>
+            </div>
+            <div class="card-footer text-muted small">
+                ID: {{ book.id }}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-warning">
+    В вашей коллекции пока нет книг. <a href="{{ url_for('main.add_book') }}">Добавьте первую!</a>
+</div>
+{% endif %}
+
+<div class="mt-4">
+    <a href="{{ url_for('main.add_book') }}" class="btn btn-success">
+        + Добавить новую книгу
+    </a>
+</div>
 {% endblock %}

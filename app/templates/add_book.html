@@ -1,8 +1,38 @@
 {% extends "base.html" %}
 
-{% block title %}{{ title }}{% endblock %}
-
 {% block content %}
-<h1>Добавить книгу</h1>
-<p>Здесь будет форма для добавления новой книги.</p>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h1 class="mb-4">{{ title }}</h1>
+
+        <div class="card shadow">
+            <div class="card-body">
+                <!-- Измените форму: method="POST" и action пустой (отправит на тот же URL) -->
+                <form method="POST" action="">
+                    <!-- Поля формы остаются как есть -->
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Название книги *</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="author" class="form-label">Автор *</label>
+                        <input type="text" class="form-control" id="author" name="author" required>
+                    </div>
+
+                    <!-- ... остальные поля ... -->
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{{ url_for('main.books') }}" class="btn btn-secondary me-2">
+                            Отмена
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            Добавить книгу
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
