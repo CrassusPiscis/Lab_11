@@ -3,7 +3,46 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<h1>Главная страница</h1>
-<p>Добро пожаловать в каталог книг!</p>
-<p>Здесь будет список пользователей с количеством книг.</p>
+<div class="text-center py-5">
+    <h1 class="display-4 mb-4">Книжная коллекция</h1>
+    <p class="lead mb-5">Управляйте вашей личной библиотекой</p>
+
+    <!-- Статистика -->
+    <div class="row mb-5">
+        <div class="col-md-4 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h3>{{ stats.total_books if stats else 0 }}</h3>
+                    <p class="mb-0">Всего книг</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h3>{{ stats.read_books if stats else 0 }}</h3>
+                    <p class="mb-0">Прочитано</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h3>{{ stats.reading_books if stats else 0 }}</h3>
+                    <p class="mb-0">В процессе</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопки действий -->
+    <div class="mt-5">
+        <a href="{{ url_for('main.books') }}" class="btn btn-primary btn-lg mx-2">
+            <i class="bi bi-book me-1"></i>Смотреть все книги
+        </a>
+        <a href="{{ url_for('main.add_book') }}" class="btn btn-success btn-lg mx-2">
+            <i class="bi bi-plus-circle me-1"></i>Добавить книгу
+        </a>
+    </div>
+</div>
 {% endblock %}
