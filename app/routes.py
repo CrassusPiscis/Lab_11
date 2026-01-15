@@ -1,81 +1,22 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from datetime import datetime
+from flask import render_template, url_for, flash, redirect, request, Blueprint
+from app import db
+from app.models import User, Book
+from app.forms import BookForm, RegistrationForm
 
 bp = Blueprint('main', __name__)
 
-# Временное хранилище книг (будет заменено на БД после feature/models)
-temporary_books = [
-    {
-        'id': 1,
-        'title': 'Мастер и Маргарита',
-        'author': 'Михаил Булгаков',
-        'year': 1967,
-        'genre': 'Роман',
-        'reading_status': 'прочитана',
-        'description': 'Классика русской литературы о добре и зле',
-        'timestamp': datetime.utcnow()
-    },
-    {
-        'id': 2,
-        'title': 'Преступление и наказание',
-        'author': 'Федор Достоевский',
-        'year': 1866,
-        'genre': 'Роман',
-        'reading_status': 'читаю',
-        'description': 'Психологический роман о преступлении и наказании',
-        'timestamp': datetime.utcnow()
-    },
-    {
-        'id': 3,
-        'title': '1984',
-        'author': 'Джордж Оруэлл',
-        'year': 1949,
-        'genre': 'Антиутопия',
-        'reading_status': 'не начата',
-        'description': 'Роман о тоталитарном обществе будущего',
-        'timestamp': datetime.utcnow()
-    }
-]
-
-
-# Простая заглушка для формы
-class SimpleForm:
-    def __init__(self, **kwargs):
-        self.data = {}
-
-    def hidden_tag(self):
-        return ''
-
-
-# Создаем простую форму для книг
-class BookForm(SimpleForm):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.title = type('obj', (object,), {'errors': [], 'data': kwargs.get('title', '')})()
-        self.author = type('obj', (object,), {'errors': [], 'data': kwargs.get('author', '')})()
-        self.year = type('obj', (object,), {'errors': [], 'data': kwargs.get('year', '')})()
-        self.genre = type('obj', (object,), {'errors': [], 'data': kwargs.get('genre', '')})()
-        self.description = type('obj', (object,), {'errors': [], 'data': kwargs.get('description', '')})()
-        self.reading_status = type('obj', (object,),
-                                   {'errors': [], 'data': kwargs.get('reading_status', 'не начата')})()
-
-    def submit(self, **kwargs):
-        return ''
-
-
 @bp.route('/')
 def index():
-    """Главная страница"""
+    """Главная страница: список пользователей и кол-во их книг"""
+    users = User.query.all()
+
     stats = {
-        'total_books': len(temporary_books),
-        'read_books': len([b for b in temporary_books if b['reading_status'] == 'прочитана']),
-        'reading_books': len([b for b in temporary_books if b['reading_status'] == 'читаю'])
+        'total_books': Book.query.count(),
+        'read_books': Book.query.filter_by(reading_status='прочитана').count(),
+        'reading_books': Book.query.filter_by(reading_status='читаю').count()
     }
 
-    return render_template('index.html',
-                           title='Главная',
-                           stats=stats,
-                           recent_books=temporary_books[:2])
+    return render_template('index.html', title='Главная', users=users, stats=stats)
 
 
 @bp.route('/books')
@@ -86,38 +27,52 @@ def books():
                            title='Каталог книг',
                            books=temporary_books,
                            genres=genres)
+@bp.route('/books')
+def books():
+    """Просмотр всех книг (для примера)"""
+    all_books = Book.query.all()
+    return render_template('books.html', title='Все книги', books=all_books)
 
 
 @bp.route('/add_book', methods=['GET', 'POST'])
 def add_book():
-    """Страница добавления книги"""
     form = BookForm()
+    if form.validate_on_submit():
+        # Пока у нас нет полноценного логина, привяжем к первому юзеру в базе
+        user = User.query.first()
+        if not user:
+            flash('Сначала создайте пользователя в базе!')
+            return redirect(url_for('main.index'))
 
-    if request.method == 'POST':
-        # Получаем данные из формы
-        book_data = {
-            'id': len(temporary_books) + 1,
-            'title': request.form.get('title', '').strip(),
-            'author': request.form.get('author', '').strip(),
-            'year': request.form.get('year', ''),
-            'genre': request.form.get('genre', 'Не указан'),
-            'reading_status': request.form.get('reading_status', 'не начата'),
-            'description': request.form.get('description', 'Описание отсутствует'),
-            'timestamp': datetime.utcnow()
-        }
+        new_book = Book(
+            title=form.title.data,
+            author=form.author.data,
+            year=form.year.data,
+            genre=form.genre.data,
+            description=form.description.data,
+            reading_status=form.status.data,
+            owner=user
+        )
+        db.session.add(new_book)
+        db.session.commit()
+        flash('Книга успешно добавлена в каталог!')
+        return redirect(url_for('main.books'))
 
-        # Проверяем обязательные поля
-        if not book_data['title'] or not book_data['author']:
-            flash('Пожалуйста, заполните название и автора книги', 'warning')
-            return render_template('add_book.html', title='Добавить книгу', form=form)
+    return render_template('add_book.html', title='Добавить книгу', form=form)
 
-        # Добавляем книгу во временное хранилище
-        temporary_books.append(book_data)
-
-        # Сообщение об успехе
-        flash(f'Книга "{book_data["title"]}" успешно добавлена!', 'success')
-
-        # Перенаправляем на страницу книг
+@bp.route('/book/<int:id>/edit', methods=['GET', 'POST'])
+def edit_book(id):
+    book = Book.query.get_or_404(id)
+    form = BookForm(obj=book) # Предзаполняем форму данными книги
+    if form.validate_on_submit():
+        book.title = form.title.data
+        book.author = form.author.data
+        book.year = form.year.data
+        book.genre = form.genre.data
+        book.description = form.description.data
+        book.reading_status = form.status.data
+        db.session.commit()
+        flash('Данные книги обновлены!')
         return redirect(url_for('main.books'))
 
     # GET запрос - просто показываем форму
