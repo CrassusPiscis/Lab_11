@@ -1,52 +1,74 @@
 {% extends "base.html" %}
 
+{% block title %}Добавить книгу{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-8">
-        <h1 class="mb-4">{{ title }}</h1>
-
         <div class="card shadow">
-            <div class="card-body">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Добавить новую книгу</h4>
+            </div>
+            <div class="card-body p-4">
                 <form method="POST" action="">
-                    {{ form.hidden_tag() }}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Название книги</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-book"></i></span>
+                                <input type="text" class="form-control" name="title" placeholder="Название книги" required>
+                            </div>
+                        </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">{{ form.title.label }}</label>
-                        {{ form.title(class="form-control", placeholder="Введите название") }}
-                        {% for error in form.title.errors %}
-                        <span class="text-danger">[{{ error }}]</span>
-                        {% endfor %}
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">{{ form.author.label }}</label>
-                        {{ form.author(class="form-control") }}
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Автор</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control" name="author" placeholder="Автор" required>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">{{ form.year.label }}</label>
-                            {{ form.year(class="form-control") }}
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Год издания</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                                <input type="number" class="form-control" name="year" placeholder="Год издания">
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">{{ form.genre.label }}</label>
-                            {{ form.genre(class="form-control") }}
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Жанр</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-tags"></i></span>
+                                <input type="text" class="form-control" name="genre" placeholder="Жанр">
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Статус чтения</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-bookmark"></i></span>
+                                <select class="form-select" name="reading_status">
+                                    <option value="не начата">Не начата</option>
+                                    <option value="читаю">Читаю</option>
+                                    <option value="прочитана">Прочитана</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">{{ form.status.label }}</label>
-                        {{ form.status(class="form-select") }}
+                        <label class="form-label">Описание</label>
+                        <textarea class="form-control" name="description" rows="4" placeholder="Краткое описание книги..."></textarea>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">{{ form.description.label }}</label>
-                        {{ form.description(class="form-control", rows="4") }}
-                    </div>
-
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                        <a href="{{ url_for('main.books') }}" class="btn btn-secondary me-2">Отмена</a>
-                        {{ form.submit(class="btn btn-primary") }}
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('main.books') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Назад к списку
+                        </a>
+                        <button type="submit" class="btn btn-primary">Добавить книгу</button>
                     </div>
                 </form>
             </div>

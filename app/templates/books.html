@@ -1,47 +1,181 @@
 {% extends "base.html" %}
 
-{% block content %}
-<h1 class="mb-4">{{ title }}</h1>
+{% block title %}Каталог книг{% endblock %}
 
-{% if books %}
-<div class="alert alert-info">
-    В коллекции {{ book_count }} книг(и)
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h2 mb-1"><i class="bi bi-book me-2"></i>Каталог книг</h1>
+        <p class="text-muted mb-0">Всего книг: {{ books|length }}</p>
+    </div>
+
+    <div>
+        <a href="{{ url_for('main.add_book') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Добавить книгу
+        </a>
+    </div>
 </div>
 
-<div class="row">
+<!-- Фильтры и поиск -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Статус чтения</label>
+                <select class="form-select" id="statusFilter">
+                    <option value="all">Все статусы</option>
+                    <option value="не начата">Не начата</option>
+                    <option value="читаю">Читаю</option>
+                    <option value="прочитана">Прочитана</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Жанр</label>
+                <select class="form-select" id="genreFilter">
+                    <option value="all">Все жанры</option>
+                    {% for genre in genres|unique %}
+                    <option value="{{ genre }}">{{ genre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Поиск</label>
+                <input type="text" class="form-control" id="searchInput" placeholder="Название или автор...">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Книги в виде карточек -->
+<div class="row" id="booksContainer">
     {% for book in books %}
-    <div class="col-md-6 mb-4">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title">{{ book.title }}</h5>
-                <h6 class="card-subtitle mb-2 text-muted">{{ book.author }}</h6>
+    <div class="col-xl-3 col-lg-4 col-md-6 mb-4 book-card"
+         data-status="{{ book.reading_status }}"
+         data-genre="{{ book.genre }}">
+        <div class="card h-100 shadow-sm hover-shadow">
+            <!-- Бейдж статуса -->
+            <div class="position-absolute top-0 end-0 m-2">
+                {% if book.reading_status == 'прочитана' %}
+                <span class="badge bg-success">Прочитана</span>
+                {% elif book.reading_status == 'читаю' %}
+                <span class="badge bg-warning text-dark">Читаю</span>
+                {% else %}
+                <span class="badge bg-secondary">Не начата</span>
+                {% endif %}
+            </div>
 
-                <div class="mb-2">
-                    <span class="badge bg-secondary">{{ book.genre }}</span>
-                    <span class="badge bg-info ms-1">{{ book.year }}</span>
-                    <span class="badge {{ 'bg-success' if book.status == 'read' else 'bg-warning' }} ms-1">
-                        {{ 'Прочитана' if book.status == 'read' else 'В процессе' }}
-                    </span>
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title mb-2 text-truncate" title="{{ book.title }}">{{ book.title }}</h5>
+                <p class="card-text text-muted small mb-1">
+                    <i class="bi bi-person me-1"></i>{{ book.author }}
+                </p>
+                <p class="card-text text-muted small mb-1">
+                    <i class="bi bi-calendar me-1"></i>{{ book.year if book.year else 'Не указан' }}
+                </p>
+                <p class="card-text text-muted small mb-3">
+                    <i class="bi bi-tag me-1"></i>{{ book.genre if book.genre else 'Без жанра' }}
+                </p>
+
+                <p class="card-text flex-grow-1 mb-3 small">
+                    {{ book.description[:100] }}{% if book.description|length > 100 %}...{% endif %}
+                </p>
+
+                <div class="mt-auto">
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('main.edit_book', book_id=book.id) }}"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+
+                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteModal{{ book.id }}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
                 </div>
+            </div>
 
-                <p class="card-text">{{ book.description }}</p>
+            <div class="card-footer bg-transparent border-top-0">
+                <small class="text-muted">
+                    Добавлено: {{ book.timestamp.strftime('%d.%m.%Y') if book.timestamp else '' }}
+                </small>
             </div>
-            <div class="card-footer text-muted small">
-                ID: {{ book.id }}
+        </div>
+    </div>
+
+    <!-- Модальное окно удаления для каждой книги -->
+    <div class="modal fade" id="deleteModal{{ book.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Удаление книги</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    Вы уверены, что хотите удалить книгу "{{ book.title }}"?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <a href="{{ url_for('main.delete_book', book_id=book.id) }}" class="btn btn-danger">
+                        Удалить
+                    </a>
+                </div>
             </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="text-center py-5">
+            <i class="bi bi-book display-1 text-muted mb-3"></i>
+            <h3 class="text-muted">Книг пока нет</h3>
+            <p class="text-muted">Добавьте первую книгу в ваш каталог</p>
+            <a href="{{ url_for('main.add_book') }}" class="btn btn-primary mt-3">
+                <i class="bi bi-plus-circle me-1"></i>Добавить книгу
+            </a>
         </div>
     </div>
     {% endfor %}
 </div>
-{% else %}
-<div class="alert alert-warning">
-    В вашей коллекции пока нет книг. <a href="{{ url_for('main.add_book') }}">Добавьте первую!</a>
-</div>
-{% endif %}
 
-<div class="mt-4">
-    <a href="{{ url_for('main.add_book') }}" class="btn btn-success">
-        + Добавить новую книгу
-    </a>
-</div>
+<!-- JavaScript для фильтрации -->
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statusFilter = document.getElementById('statusFilter');
+    const genreFilter = document.getElementById('genreFilter');
+    const searchInput = document.getElementById('searchInput');
+    const bookCards = document.querySelectorAll('.book-card');
+
+    function filterBooks() {
+        const statusValue = statusFilter.value;
+        const genreValue = genreFilter.value;
+        const searchValue = searchInput.value.toLowerCase();
+
+        bookCards.forEach(card => {
+            const status = card.getAttribute('data-status');
+            const genre = card.getAttribute('data-genre').toLowerCase();
+            const title = card.querySelector('.card-title').textContent.toLowerCase();
+            const author = card.querySelector('.card-text:nth-child(2)').textContent.toLowerCase();
+
+            const statusMatch = statusValue === 'all' || status === statusValue;
+            const genreMatch = genreValue === 'all' || genre.includes(genreValue.toLowerCase());
+            const searchMatch = !searchValue ||
+                               title.includes(searchValue) ||
+                               author.includes(searchValue);
+
+            if (statusMatch && genreMatch && searchMatch) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    statusFilter.addEventListener('change', filterBooks);
+    genreFilter.addEventListener('change', filterBooks);
+    searchInput.addEventListener('input', filterBooks);
+});
+</script>
+{% endblock %}
 {% endblock %}
