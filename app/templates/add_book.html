@@ -1,34 +1,74 @@
 {% extends "base.html" %}
 
+{% block title %}Добавить книгу{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-8">
-        <h1 class="mb-4">{{ title }}</h1>
-
         <div class="card shadow">
-            <div class="card-body">
-                <!-- Измените форму: method="POST" и action пустой (отправит на тот же URL) -->
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Добавить новую книгу</h4>
+            </div>
+            <div class="card-body p-4">
                 <form method="POST" action="">
-                    <!-- Поля формы остаются как есть -->
-                    <div class="mb-3">
-                        <label for="title" class="form-label">Название книги *</label>
-                        <input type="text" class="form-control" id="title" name="title" required>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Название книги</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-book"></i></span>
+                                <input type="text" class="form-control" name="title" placeholder="Название книги" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Автор</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control" name="author" placeholder="Автор" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Год издания</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                                <input type="number" class="form-control" name="year" placeholder="Год издания">
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Жанр</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-tags"></i></span>
+                                <input type="text" class="form-control" name="genre" placeholder="Жанр">
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Статус чтения</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-bookmark"></i></span>
+                                <select class="form-select" name="reading_status">
+                                    <option value="не начата">Не начата</option>
+                                    <option value="читаю">Читаю</option>
+                                    <option value="прочитана">Прочитана</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="author" class="form-label">Автор *</label>
-                        <input type="text" class="form-control" id="author" name="author" required>
+                        <label class="form-label">Описание</label>
+                        <textarea class="form-control" name="description" rows="4" placeholder="Краткое описание книги..."></textarea>
                     </div>
 
-                    <!-- ... остальные поля ... -->
-
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                        <a href="{{ url_for('main.books') }}" class="btn btn-secondary me-2">
-                            Отмена
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('main.books') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Назад к списку
                         </a>
-                        <button type="submit" class="btn btn-primary">
-                            Добавить книгу
-                        </button>
+                        <button type="submit" class="btn btn-primary">Добавить книгу</button>
                     </div>
                 </form>
             </div>

@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Редактировать книгу{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Редактировать книгу</h4>
+            </div>
+            <div class="card-body p-4">
+                <!-- Важно: action оставляем пустым, чтобы форма отправлялась на текущий URL -->
+                <form method="POST" action="">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Название книги</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-book"></i></span>
+                                <input type="text" class="form-control" name="title"
+                                       value="{{ form.title.data if form.title.data else '' }}" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Автор</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control" name="author"
+                                       value="{{ form.author.data if form.author.data else '' }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Год издания</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                                <input type="number" class="form-control" name="year"
+                                       value="{{ form.year.data if form.year.data else '' }}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Жанр</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-tags"></i></span>
+                                <input type="text" class="form-control" name="genre"
+                                       value="{{ form.genre.data if form.genre.data else '' }}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Статус чтения</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-bookmark"></i></span>
+                                <select class="form-select" name="reading_status">
+                                    <option value="не начата" {% if form.reading_status.data == 'не начата' %}selected{% endif %}>Не начата</option>
+                                    <option value="читаю" {% if form.reading_status.data == 'читаю' %}selected{% endif %}>Читаю</option>
+                                    <option value="прочитана" {% if form.reading_status.data == 'прочитана' %}selected{% endif %}>Прочитана</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Описание</label>
+                        <textarea class="form-control" name="description" rows="4">{{ form.description.data if form.description.data else '' }}</textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('main.books') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Отмена
+                        </a>
+                        <div>
+                            <button type="button" class="btn btn-danger me-2" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="bi bi-trash me-1"></i>Удалить
+                            </button>
+                            <button type="submit" class="btn btn-warning">Сохранить изменения</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно удаления -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Подтверждение удаления</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Вы уверены, что хотите удалить книгу "{{ form.title.data if form.title.data else 'эту книгу' }}"?
+                Это действие нельзя отменить.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <a href="{{ url_for('main.delete_book', book_id=book.id) }}" class="btn btn-danger">
+                    Да, удалить
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
