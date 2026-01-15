@@ -7,40 +7,76 @@
     <h1 class="display-4 mb-4">Книжная коллекция</h1>
     <p class="lead mb-5">Управляйте вашей личной библиотекой</p>
 
-    <!-- Статистика -->
     <div class="row mb-5">
         <div class="col-md-4 mb-3">
-            <div class="card bg-primary text-white">
+            <div class="card bg-primary text-white shadow-sm">
                 <div class="card-body">
-                    <h3>{{ stats.total_books if stats else 0 }}</h3>
+                    <h3>{{ stats.total_books }}</h3>
                     <p class="mb-0">Всего книг</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4 mb-3">
-            <div class="card bg-success text-white">
+            <div class="card bg-success text-white shadow-sm">
                 <div class="card-body">
-                    <h3>{{ stats.read_books if stats else 0 }}</h3>
+                    <h3>{{ stats.read_books }}</h3>
                     <p class="mb-0">Прочитано</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4 mb-3">
-            <div class="card bg-warning text-white">
+            <div class="card bg-warning text-dark shadow-sm">
                 <div class="card-body">
-                    <h3>{{ stats.reading_books if stats else 0 }}</h3>
+                    <h3>{{ stats.reading_books }}</h3>
                     <p class="mb-0">В процессе</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Кнопки действий -->
-    <div class="mt-5">
-        <a href="{{ url_for('main.books') }}" class="btn btn-primary btn-lg mx-2">
+    <div class="row mb-5">
+        <div class="col-md-8 offset-md-2 text-start">
+            <h3 class="mb-4 text-center">Наши активные читатели</h3>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle shadow-sm">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Пользователь</th>
+                        <th class="text-center">Книг в каталоге</th>
+                        <th class="text-end">Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td><strong>{{ user.username }}</strong></td>
+                        <td class="text-center">
+                                <span class="badge bg-secondary rounded-pill">
+                                    {{ user.books.count() }}
+                                </span>
+                        </td>
+                        <td class="text-end">
+                            <a href="#" class="btn btn-sm btn-outline-primary">Просмотр</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-4">
+                            Пользователей пока нет. Зарегистрируйтесь первым!
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-2">
+        <a href="{{ url_for('main.books') }}" class="btn btn-primary btn-lg mx-2 shadow">
             <i class="bi bi-book me-1"></i>Смотреть все книги
         </a>
-        <a href="{{ url_for('main.add_book') }}" class="btn btn-success btn-lg mx-2">
+        <a href="{{ url_for('main.add_book') }}" class="btn btn-success btn-lg mx-2 shadow">
             <i class="bi bi-plus-circle me-1"></i>Добавить книгу
         </a>
     </div>
