@@ -20,11 +20,10 @@ def index():
     return render_template('index.html', title='Главная', users=users, stats=stats)
 
 @bp.route('/books')
-@login_required # Только залогиненные видят свои книги
+@login_required
 def books():
-    # Получаем книги только текущего пользователя
-    user_books = current_user.books.all()
-    return render_template('books.html', title='Мои книги', books=user_books)
+    # Просто перенаправляем пользователя на его личный публичный профиль
+    return redirect(url_for('main.user_profile', username=current_user.username))
 
 @bp.route('/add_book', methods=['GET', 'POST'])
 def add_book():
@@ -123,3 +122,12 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('main.index'))
+
+@bp.route('/user/<username>')
+def user_profile(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    # Получаем книги этого пользователя
+    books = user.books.all()
+    # Передаем в шаблон переменную is_owner для удобства
+    is_owner = current_user.is_authenticated and current_user.id == user.id
+    return render_template('user_profile.html', user=user, books=books, is_owner=is_owner)
