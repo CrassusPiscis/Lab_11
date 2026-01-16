@@ -11,37 +11,32 @@
             </div>
             <div class="card-body p-4">
                 <form method="POST" action="">
-                    {{ form.hidden_tag() }}
-
                     <div class="row">
-                        <div class="col-md-12 mb-3"> <label class="form-label">{{ form.username.label }}</label>
-                            {{ form.username(class="form-control", placeholder="Придумайте никнейм") }}
-                            {% for error in form.username.errors %}
-                            <div class="text-danger small">{{ error }}</div>
-                            {% endfor %}
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Имя пользователя</label>
+                            <input type="text" class="form-control" name="username" required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" required>
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">{{ form.password.label }}</label>
-                            {{ form.password(class="form-control") }}
-                            {% for error in form.password.errors %}
-                            <div class="text-danger small">{{ error }}</div>
-                            {% endfor %}
+                            <label class="form-label">Пароль</label>
+                            <input type="password" class="form-control" name="password" required>
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">{{ form.confirm_password.label }}</label>
-                            {{ form.confirm_password(class="form-control") }}
-                            {% for error in form.confirm_password.errors %}
-                            <div class="text-danger small">{{ error }}</div>
-                            {% endfor %}
+                            <label class="form-label">Подтвердите пароль</label>
+                            <input type="password" class="form-control" name="confirm_password" required>
                         </div>
                     </div>
 
                     <div class="d-grid gap-2">
-                        {{ form.submit(class="btn btn-success") }}
+                        <button type="submit" class="btn btn-success">Зарегистрироваться</button>
                     </div>
                 </form>
 

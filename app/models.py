@@ -1,26 +1,15 @@
-from app import db, login
+from app import db
 from datetime import datetime
-from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
 
-
-class User(UserMixin, db.Model): # Наследуем UserMixin
+class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True, nullable=False)
-    password_hash = db.Column(db.String(128)) # Меняем password на хеш
-    books = db.relationship('Book', backref='owner', lazy='dynamic')
+    # Связь с книгами: один пользователь может иметь много книг
+    books = db.relationship('Book', backref='owner', lazy='dynamic', cascade="all, delete-orphan")
 
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
-# Функция для загрузки пользователя по ID из сессии
-@login.user_loader
-def load_user(id):
-    return User.query.get(int(id))
+    def __repr__(self):
+        return f'<User {self.username}>'
 
 class Book(db.Model):
     __tablename__ = 'books'

@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, TextAreaField, SelectField, SubmitField, PasswordField, BooleanField
+from wtforms import StringField, IntegerField, TextAreaField, SelectField, SubmitField, PasswordField
 from wtforms.validators import DataRequired, Length, NumberRange, EqualTo, ValidationError
 from app.models import User
 
@@ -28,10 +28,3 @@ class RegistrationForm(FlaskForm):
         user = User.query.filter_by(username=username.data).first()
         if user:
             raise ValidationError('Это имя уже занято. Выберите другое.')
-
-# Форма входа
-class LoginForm(FlaskForm):
-    username = StringField('Имя пользователя', validators=[DataRequired()])
-    password = PasswordField('Пароль', validators=[DataRequired()])
-    remember_me = BooleanField('Запомнить меня')
-    submit = SubmitField('Войти')
