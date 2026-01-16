@@ -82,7 +82,7 @@
 
                 <div class="mt-auto">
                     <div class="d-flex justify-content-between">
-                        <a href="{{ url_for('main.edit_book', book_id=book.id) }}"
+                        <a href="{{ url_for('main.edit_book', id=book.id) }}"
                            class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-pencil"></i>
                         </a>
@@ -117,7 +117,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                    <a href="{{ url_for('main.delete_book', book_id=book.id) }}" class="btn btn-danger">
+                    <a href="{{ url_for('main.delete_book', id=book.id) }}" class="btn btn-danger">
                         Удалить
                     </a>
                 </div>
