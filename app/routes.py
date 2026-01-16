@@ -1,7 +1,8 @@
 from flask import render_template, url_for, flash, redirect, request, Blueprint
+from flask_login import current_user, login_user, logout_user, login_required
 from app import db
 from app.models import User, Book
-from app.forms import BookForm, RegistrationForm
+from app.forms import BookForm, RegistrationForm, LoginForm
 
 bp = Blueprint('main', __name__)
 
@@ -18,15 +19,6 @@ def index():
 
     return render_template('index.html', title='Главная', users=users, stats=stats)
 
-
-@bp.route('/books')
-def books():
-    """Страница каталога книг"""
-    genres = list(set([book['genre'] for book in temporary_books if book.get('genre')]))
-    return render_template('books.html',
-                           title='Каталог книг',
-                           books=temporary_books,
-                           genres=genres)
 @bp.route('/books')
 def books():
     """Просмотр всех книг (для примера)"""
@@ -39,7 +31,7 @@ def add_book():
     form = BookForm()
     if form.validate_on_submit():
         # Пока у нас нет полноценного логина, привяжем к первому юзеру в базе
-        user = User.query.first()
+        user = current_user
         if not user:
             flash('Сначала создайте пользователя в базе!')
             return redirect(url_for('main.index'))
@@ -75,100 +67,47 @@ def edit_book(id):
         flash('Данные книги обновлены!')
         return redirect(url_for('main.books'))
 
-    # GET запрос - просто показываем форму
-    return render_template('add_book.html', title='Добавить книгу', form=form)
+    # Чтобы SelectField правильно выбрал текущий статус
+    form.status.data = book.reading_status
+    return render_template('add_book.html', title='Редактировать книгу', form=form)
 
-
-@bp.route('/edit_book/<int:book_id>', methods=['GET', 'POST'])
-def edit_book(book_id):
-    """Страница редактирования книги"""
-    # Находим книгу по ID
-    book = next((b for b in temporary_books if b['id'] == book_id), None)
-    if not book:
-        flash('Книга не найдена', 'danger')
-        return redirect(url_for('main.books'))
-
-    if request.method == 'POST':
-        # Обновляем данные книги
-        book['title'] = request.form.get('title', '').strip()
-        book['author'] = request.form.get('author', '').strip()
-        book['year'] = request.form.get('year', '')
-        book['genre'] = request.form.get('genre', 'Не указан')
-        book['reading_status'] = request.form.get('reading_status', 'не начата')
-        book['description'] = request.form.get('description', 'Описание отсутствует')
-
-        # Проверяем обязательные поля
-        if not book['title'] or not book['author']:
-            flash('Пожалуйста, заполните название и автора книги', 'warning')
-        else:
-            flash(f'Книга "{book["title"]}" успешно обновлена!', 'success')
-            return redirect(url_for('main.books'))
-
-    # Создаем форму с данными книги (для GET или если были ошибки в POST)
-    form = BookForm(
-        title=book['title'],
-        author=book['author'],
-        year=book['year'],
-        genre=book['genre'],
-        description=book['description'],
-        reading_status=book['reading_status']
-    )
-
-    return render_template('edit_book.html', title='Редактировать книгу', form=form, book=book)
-
-
-@bp.route('/delete_book/<int:book_id>')
-def delete_book(book_id):
-    """Удаление книги"""
-    global temporary_books
-    book = next((b for b in temporary_books if b['id'] == book_id), None)
-    if book:
-        temporary_books = [b for b in temporary_books if b['id'] != book_id]
-        flash(f'Книга "{book["title"]}" удалена', 'success')
-    else:
-        flash('Книга не найдена', 'danger')
-
+@bp.route('/book/<int:id>/delete', methods=['POST'])
+def delete_book(id):
+    book = Book.query.get_or_404(id)
+    db.session.delete(book)
+    db.session.commit()
+    flash('Книга удалена.')
     return redirect(url_for('main.books'))
-
-
-@bp.route('/login', methods=['GET', 'POST'])
-def login():
-    """Страница входа"""
-    form = SimpleForm()
-
-    if request.method == 'POST':
-        # Временная логика - всегда успешный вход
-        flash('Вход выполнен успешно!', 'success')
-        return redirect(url_for('main.index'))
-
-    return render_template('login.html', title='Вход в систему', form=form)
-
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
-    """Страница регистрации"""
-    form = SimpleForm()
-
-    if request.method == 'POST':
-        # Временная логика - всегда успешная регистрация
-        flash('Регистрация успешна! Теперь войдите в систему.', 'success')
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(username=form.username.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('Поздравляем, вы зарегистрированы!')
         return redirect(url_for('main.login'))
-
     return render_template('register.html', title='Регистрация', form=form)
 
+@bp.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
+    form = LoginForm() # Создай простую форму с username, password и submit
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user is None or not user.check_password(form.password.data):
+            flash('Неверное имя пользователя или пароль')
+            return redirect(url_for('main.login'))
+        login_user(user)
+        return redirect(url_for('main.index'))
+    return render_template('login.html', title='Вход', form=form)
 
 @bp.route('/logout')
 def logout():
-    """Выход из системы"""
-    flash('Вы вышли из системы', 'info')
-    return redirect(url_for('main.index'))
-
-
-@bp.route('/test-flash')
-def test_flash():
-    """Тестовая страница для проверки flash-сообщений"""
-    flash('Это успешное сообщение!', 'success')
-    flash('Это предупреждение!', 'warning')
-    flash('Это ошибка!', 'danger')
-    flash('Это информационное сообщение', 'info')
+    logout_user()
     return redirect(url_for('main.index'))
