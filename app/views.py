@@ -23,47 +23,6 @@ def index():
                            welcome_message='Добро пожаловать в книжную коллекцию!')
 
 
-@bp.route('/books')
-def books():
-    """
-    Страница со списком книг (каталог).
-    Пока заглушка - будет заменена на реальные данные из БД.
-
-    Returns:
-        Отрендеренный шаблон books.html
-    """
-    # Временные данные для демонстрации
-    # После реализации БД здесь будет Book.query.all() или подобное
-    sample_books = [
-        {
-            'id': 1,
-            'title': 'Мастер и Маргарита',
-            'author': 'Михаил Булгаков',
-            'year': 1967,
-            'status': 'read'
-        },
-        {
-            'id': 2,
-            'title': 'Преступление и наказание',
-            'author': 'Федор Достоевский',
-            'year': 1866,
-            'status': 'reading'
-        },
-        {
-            'id': 3,
-            'title': '1984',
-            'author': 'Джордж Оруэлл',
-            'year': 1949,
-            'status': 'read'
-        }
-    ]
-
-    return render_template('books.html',
-                           books=sample_books,
-                           page_title='Мои книги',
-                           book_count=len(sample_books))
-
-
 @bp.route('/add-book', methods=['GET', 'POST'])
 def add_book():
     """

@@ -20,11 +20,10 @@ def index():
     return render_template('index.html', title='Главная', users=users, stats=stats)
 
 @bp.route('/books')
+@login_required
 def books():
-    """Просмотр всех книг (для примера)"""
-    all_books = Book.query.all()
-    return render_template('books.html', title='Все книги', books=all_books)
-
+    # Просто перенаправляем пользователя на его личный публичный профиль
+    return redirect(url_for('main.user_profile', username=current_user.username))
 
 @bp.route('/add_book', methods=['GET', 'POST'])
 def add_book():
@@ -51,11 +50,16 @@ def add_book():
         return redirect(url_for('main.books'))
 
     return render_template('add_book.html', title='Добавить книгу', form=form)
-
 @bp.route('/book/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
 def edit_book(id):
     book = Book.query.get_or_404(id)
-    form = BookForm(obj=book) # Предзаполняем форму данными книги
+    # Защита: нельзя редактировать чужую книгу
+    if book.owner != current_user:
+        flash('У вас нет прав для редактирования этой книги.')
+        return redirect(url_for('main.books'))
+
+    form = BookForm(obj=book) # Предзаполняем форму данными из объекта
     if form.validate_on_submit():
         book.title = form.title.data
         book.author = form.author.data
@@ -64,19 +68,26 @@ def edit_book(id):
         book.description = form.description.data
         book.reading_status = form.status.data
         db.session.commit()
-        flash('Данные книги обновлены!')
+        flash('Книга успешно обновлена!')
         return redirect(url_for('main.books'))
 
-    # Чтобы SelectField правильно выбрал текущий статус
-    form.status.data = book.reading_status
+    # Чтобы SelectField при загрузке страницы показал текущий статус
+    if request.method == 'GET':
+        form.status.data = book.reading_status
+
     return render_template('add_book.html', title='Редактировать книгу', form=form)
 
 @bp.route('/book/<int:id>/delete', methods=['POST'])
+@login_required
 def delete_book(id):
     book = Book.query.get_or_404(id)
+    if book.owner != current_user:
+        flash('У вас нет прав для удаления этой книги.')
+        return redirect(url_for('main.books'))
+
     db.session.delete(book)
     db.session.commit()
-    flash('Книга удалена.')
+    flash('Книга удалена из вашего каталога.')
     return redirect(url_for('main.books'))
 
 @bp.route('/register', methods=['GET', 'POST'])
@@ -111,3 +122,12 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('main.index'))
+
+@bp.route('/user/<username>')
+def user_profile(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    # Получаем книги этого пользователя
+    books = user.books.all()
+    # Передаем в шаблон переменную is_owner для удобства
+    is_owner = current_user.is_authenticated and current_user.id == user.id
+    return render_template('user_profile.html', user=user, books=books, is_owner=is_owner)
