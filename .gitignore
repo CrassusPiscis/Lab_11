@@ -1,5 +1,5 @@
 .venv
 .idea
 .env
-app.db
+/instance/app.db
 .gitignore
